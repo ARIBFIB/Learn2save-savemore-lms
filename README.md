@@ -1,4 +1,4 @@
-cat << 'EOF' > README.md
+![WhatsApp Image 2025-10-03 at 17 06 52_85022b67](https://github.com/user-attachments/assets/1b8c2c08-20dc-4025-987c-494e0769d4ca)cat << 'EOF' > README.md
 # 🎓 SaveMore LMS – Modern Learning Management System  
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.13-blue)
@@ -30,12 +30,13 @@ It connects learners and instructors, tracks progress, manages courses, and inte
 ## 🖥️ Web & Desktop Screenshots  
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/25cdce74-eab5-4e74-bc56-6eeab2c58cca" width="400" />
-  <img src="https://github.com/user-attachments/assets/3f3bc817-e692-4afb-8a90-79aaa53df370" width="400" />
+  <img src="https://github.com/user-attachments/assets/89b1dfd1-e75e-4240-9d32-07c0bccace13" width="450" />
+  <img src="https://github.com/user-attachments/assets/1ffca830-9749-4e52-8a00-a45ce7843345" width="450" />
 </p>
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/8b5658db-565e-4e1f-83d2-4547c5685d5b" width="400" />
+  <img src="https://github.com/user-attachments/assets/6f7ea435-50f6-44b2-89ec-d296f3369990" width="450" />
+  <img src="https://github.com/user-attachments/assets/b6942cda-acc0-430b-bb5a-194ff2d39e8f" width="450" />
 </p>
 
 ---
@@ -43,17 +44,13 @@ It connects learners and instructors, tracks progress, manages courses, and inte
 ## 📱 Mobile Screenshots  
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/8be56dfa-fdae-4c55-aadd-e3be230e7286" width="220" />
-  <img src="https://github.com/user-attachments/assets/175b90ed-86e8-4d92-95e3-3de919f55d1f" width="220" />
-  <img src="https://github.com/user-attachments/assets/9d8f1bbc-ed0b-49e8-a88c-72c761b2f682" width="220" />
-</p>
-
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/42cb8528-fcfd-4efa-9be7-4fb698bee527" width="220" />
-  <img src="https://github.com/user-attachments/assets/f99f9337-5e51-4816-b436-e1871a0799cf" width="220" />
+  <img src="https://github.com/user-attachments/assets/ea9c07bc-d09e-467d-82d4-683ef15e4947" width="220" />
+  <img src="https://github.com/user-attachments/assets/e082d3f2-96d1-4b5b-a4f0-7426b297d510" width="220" />
+  <img src="https://github.com/user-attachments/assets/49315004-2a8d-44b3-9d7b-30b6f060930f" width="220" />
 </p>
 
 ---
+
 
 ## 🛠️ Tech Stack  
 
@@ -90,3 +87,4 @@ flutter run -d chrome
 
 # Run on Mobile
 flutter run -d <device-id>
+
