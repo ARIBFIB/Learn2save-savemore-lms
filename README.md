@@ -1,4 +1,3 @@
-![WhatsApp Image 2025-10-03 at 17 06 52_85022b67](https://github.com/user-attachments/assets/1b8c2c08-20dc-4025-987c-494e0769d4ca)cat << 'EOF' > README.md
 # 🎓 SaveMore LMS – Modern Learning Management System  
 
 ![Flutter](https://img.shields.io/badge/Flutter-3.13-blue)
@@ -87,4 +86,5 @@ flutter run -d chrome
 
 # Run on Mobile
 flutter run -d <device-id>
+
 
