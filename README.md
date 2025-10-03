@@ -1,12 +1,17 @@
 cat << 'EOF' > README.md
 # 🎓 SaveMore LMS – Modern Learning Management System  
 
+![Flutter](https://img.shields.io/badge/Flutter-3.13-blue)
+![License](https://img.shields.io/badge/License-MIT-green)
+![GitHub stars](https://img.shields.io/github/stars/yourusername/savemore-lms)
+![Platform](https://img.shields.io/badge/Platform-Android%2FiOS%2FWeb-orange)
+
 <p align="center">
   <img src="https://github.com/user-attachments/assets/e0e7f796-d68e-4782-aa53-0c6e528dc91e" alt="SaveMore LMS Logo" width="220" height="220"/>
 </p>
 
-**SaveMore LMS** is a next-generation **Flutter-powered Learning Management System (LMS)** designed for **mobile and web platforms**.  
-With a clean design, powerful features, and seamless **Zoho backend integration**, it helps learners and instructors connect, track progress, and manage courses efficiently.  
+**SaveMore LMS** is a **Flutter-powered Learning Management System (LMS)** designed for **mobile and web platforms**.  
+It connects learners and instructors, tracks progress, manages courses, and integrates seamlessly with **Zoho backend APIs**.  
 
 ---
 
@@ -14,10 +19,10 @@ With a clean design, powerful features, and seamless **Zoho backend integration*
 
 - 📚 **Course Browsing** – Explore courses by category.  
 - 📝 **Enroll & Track** – Register for courses and monitor progress.  
-- ✅ **Lesson Completion** – Mark lessons as complete with progress tracking.  
-- 📱 **Responsive UI** – Optimized for both **mobile** & **web**.  
+- ✅ **Lesson Completion** – Mark lessons complete with progress tracking.  
+- 📱 **Responsive UI** – Optimized for **mobile & web**.  
 - 🔗 **Zoho Backend Integration** – Secure data management via Zoho APIs.  
-- 🛠️ **Dummy Data Ready** – Easily replace with real APIs.  
+- 🛠️ **Dummy Data Ready** – Easily switch to real backend.  
 - 🔐 **Secure Authentication** – User login and role-based access.  
 
 ---
@@ -61,15 +66,20 @@ With a clean design, powerful features, and seamless **Zoho backend integration*
 
 ---
 
-## 🚀 Getting Started  
+## 🚀 Live Demo  
 
-Follow these steps to set up and run the project locally:  
+- 🌐 **Web:** [https://savemore-lms.web.app/](https://savemore-lms.web.app/)  
+- 📱 **Mobile:** Available on **Google Play Store** (add your link here)
+
+---
+
+## 📦 Getting Started  
 
 ```bash
 # Clone the repository
 git clone https://github.com/yourusername/savemore-lms.git
 
-# Navigate into the project directory
+# Navigate into the project
 cd savemore-lms
 
 # Install dependencies
