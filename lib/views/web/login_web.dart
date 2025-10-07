@@ -67,7 +67,7 @@ class _LoginWebState extends State<LoginWeb> {
                       ),
                       const SizedBox(height: 32),
                       Image.asset(
-                        'assets/images/LOGO_TYPO_SML.png',
+                        'assets/images/logo_typo_sml.png',
                         width: 160,
                         height: 60,
                         fit: BoxFit.contain,
@@ -122,7 +122,7 @@ class _LoginWebState extends State<LoginWeb> {
                           ),
                           const SizedBox(height: 24),
                           Image.asset(
-                            'assets/images/LOGO_TYPO_SML.png',
+                            'assets/images/logo_typo_sml.png',
                             width: 160,
                             height: 60,
                             fit: BoxFit.contain,

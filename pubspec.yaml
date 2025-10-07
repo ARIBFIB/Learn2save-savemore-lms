@@ -85,6 +85,7 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/images/
+    - assets/images/logo_typo_sml.png
     - assets/font/
 
   fonts:
