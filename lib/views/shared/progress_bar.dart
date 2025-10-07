@@ -1,30 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:learn2save_lms_flutter_app/constants/colors.dart';
+import '../../constants/colors.dart';
 
 class ProgressBar extends StatelessWidget {
   final double progress;
-  final double height;
+  final double? height;
   final Color? backgroundColor;
   final Color? progressColor;
   final BorderRadius? borderRadius;
 
   const ProgressBar({
-    Key? key,
+    super.key,
     required this.progress,
-    this.height = 8.0,
+    this.height,
     this.backgroundColor,
     this.progressColor,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: height,
+      height: height ?? 8,
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.background,
-        borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
+        borderRadius: borderRadius ?? BorderRadius.circular(4),
       ),
       child: FractionallySizedBox(
         alignment: Alignment.centerLeft,
@@ -32,7 +31,7 @@ class ProgressBar extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: progressColor ?? AppColors.primary,
-            borderRadius: borderRadius ?? BorderRadius.circular(height / 2),
+            borderRadius: borderRadius ?? BorderRadius.circular(4),
           ),
         ),
       ),

@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:learn2save_lms_flutter_app/views/shared/buttons.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../controllers/auth_controller.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../utils/validators.dart';
-import '../../routes/app_routes.dart';
 import '../../constants/colors.dart';
 import '../../constants/strings.dart';
+import '../../controllers/auth_controller.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/notification_banner.dart';
+import '../../utils/validators.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/buttons.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -22,7 +21,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -31,211 +29,229 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final success = await authController.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-
-      if (success && authController.isAuthenticated) {
-        // Navigate to dashboard based on user role
-        // Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-      }
-      // Error handling is done in the auth controller and displayed in the UI
-    }
-    Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Initialize screenutil for responsive design
-    ScreenUtil.init(context, designSize: const Size(375, 812));
+    final authController = context.watch<AuthController>();
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Consumer<AuthController>(
-          builder: (context, authController, child) {
-            // Show error message if any
-            if (authController.errorMessage != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(authController.errorMessage!),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
-                authController.clearError(); // Clear error after showing
-              });
-            }
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 60),
 
-            return SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: 24.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 60.h),
-
-                  // Logo and app title
-                  Center(
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          'assets/images/logo.png',
-                          height: 80.h,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          AppStrings.appName,
-                          style: TextStyle(
-                            fontSize: 28.sp,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          AppStrings.loginSubtitle,
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  SizedBox(height: 60.h),
-
-                  // Login form
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // Email field
-                        CustomTextField(
-                          controller: _emailController,
-                          labelText: AppStrings.email,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: Validators.validateEmail,
-                          prefixIcon: Icons.email_outlined,
-                        ),
-
-                        SizedBox(height: 20.h),
-
-                        // Password field
-                        CustomTextField(
-                          controller: _passwordController,
-                          labelText: AppStrings.password,
-                          obscureText: _obscurePassword,
-                          validator: Validators.validatePassword,
-                          prefixIcon: Icons.lock_outline,
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePassword
-                                  ? Icons.visibility_off_outlined
-                                  : Icons.visibility_outlined,
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                _obscurePassword = !_obscurePassword;
-                              });
-                            },
-                          ),
-                        ),
-
-                        SizedBox(height: 16.h),
-
-                        // Remember me and forgot password
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Checkbox(
-                                  value: _rememberMe,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _rememberMe = value ?? false;
-                                    });
-                                  },
-                                  activeColor: AppColors.primary,
-                                ),
-                                Text(
-                                  AppStrings.rememberMe,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    color: AppColors.textSecondary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                // Navigate to forgot password screen
-                                Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
-                              },
-                              child: Text(
-                                AppStrings.forgotPassword,
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        SizedBox(height: 30.h),
-
-                        // Login button
-                        authController.isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : PrimaryButton(
-                          text: AppStrings.login,
-                          onPressed: _login,
-                        ),
-
-                        SizedBox(height: 30.h),
-
-                        // Sign up link
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              AppStrings.dontHaveAccount,
-                              style: TextStyle(
-                                fontSize: 14.sp,
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.of(context).pushNamed(AppRoutes.signup);
-                              },
-                              child: Text(
-                                AppStrings.signup,
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              // Logo and Title
+              Image.asset(
+                'assets/images/logo.png',
+                width: 80,
+                height: 80,
+                fit: BoxFit.contain,
               ),
-            );
-          },
+              const SizedBox(height: 16),
+              Text(
+                AppStrings.appName,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                AppStrings.tagline,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+
+              const SizedBox(height: 48),
+
+              // Error Message
+              if (authController.errorMessage != null)
+                NotificationBanner(
+                  message: authController.errorMessage!,
+                  type: 'error',
+                  onClose: () => authController.clearError(),
+                ),
+
+              // Login Form
+              Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    // Email Field
+                    CustomTextField(
+                      label: AppStrings.email,
+                      hint: 'Enter your email',
+                      prefixIcon: Icons.email_outlined,
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: Validators.validateEmail,
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Password Field
+                    CustomTextField(
+                      label: AppStrings.password,
+                      hint: 'Enter your password',
+                      prefixIcon: Icons.lock_outline,
+                      suffixIcon: _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                      obscureText: _obscurePassword,
+                      controller: _passwordController,
+                      validator: Validators.validatePassword,
+                      onSuffixIconTap: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+
+                    // Remember Me and Forgot Password
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: false,
+                              onChanged: (value) {},
+                              activeColor: AppColors.primary,
+                            ),
+                            Text(
+                              AppStrings.rememberMe,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            // Handle forgot password
+                          },
+                          child: Text(
+                            AppStrings.forgotPassword,
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Login Button
+                    PrimaryButton(
+                      text: AppStrings.login,
+                      onPressed: _handleLogin,
+                      isLoading: authController.isLoading,
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Signup Link
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          AppStrings.dontHaveAccount,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            context.go('/signup');
+                          },
+                          child: Text(
+                            AppStrings.signup,
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // Demo Credentials
+                    // Add this to the existing login_screen.dart file, in the demo credentials section
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.info.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppColors.info.withOpacity(0.3),
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Demo Credentials:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.info,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Student Account:\nEmail: savemore@gmail.com\nPassword: password123',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Admin Account:\nEmail: admin@savemore.com\nPassword: admin123',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  void _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final success = await context.read<AuthController>().login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (success) {
+        if (mounted) {
+          context.go('/dashboard');
+        }
+      }
+    }
   }
 }

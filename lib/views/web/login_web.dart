@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
-import 'package:learn2save_lms_flutter_app/views/shared/buttons.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../controllers/auth_controller.dart';
-import '../../widgets/custom_text_field.dart';
-import '../../utils/validators.dart';
-import '../../routes/app_routes.dart';
+import 'package:go_router/go_router.dart';
 import '../../constants/colors.dart';
 import '../../constants/strings.dart';
+import '../../controllers/auth_controller.dart';
+import '../../widgets/custom_text_field.dart';
+import '../../widgets/notification_banner.dart';
+import '../../utils/validators.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/buttons.dart';
 
-class LoginWebScreen extends StatefulWidget {
-  const LoginWebScreen({Key? key}) : super(key: key);
+class LoginWeb extends StatefulWidget {
+  const LoginWeb({super.key});
 
   @override
-  State<LoginWebScreen> createState() => _LoginWebScreenState();
+  State<LoginWeb> createState() => _LoginWebState();
 }
 
-class _LoginWebScreenState extends State<LoginWebScreen> {
+class _LoginWebState extends State<LoginWeb> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _rememberMe = false;
 
   @override
   void dispose() {
@@ -31,297 +30,370 @@ class _LoginWebScreenState extends State<LoginWebScreen> {
     super.dispose();
   }
 
-  Future<void> _login() async {
-    if (_formKey.currentState!.validate()) {
-      final authController = Provider.of<AuthController>(context, listen: false);
-      final success = await authController.login(
-        _emailController.text.trim(),
-        _passwordController.text,
-      );
-
-      if (success && authController.isAuthenticated) {
-        // Navigate to dashboard
-        Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-      }
-      // Error handling is done in the auth controller and displayed in the UI
-    }
-    Navigator.of(context).pushReplacementNamed(AppRoutes.dashboard);
-  }
-
   @override
   Widget build(BuildContext context) {
-    // Initialize screenutil for responsive design
-    ScreenUtil.init(context, designSize: const Size(1440, 900));
+    final authController = context.watch<AuthController>();
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: Consumer<AuthController>(
-        builder: (context, authController, child) {
-          // Show error message if any
-          if (authController.errorMessage != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(authController.errorMessage!),
-                  backgroundColor: AppColors.error,
+      body: Row(
+        children: [
+          // Left Side - Branding
+          if (screenWidth > 1200)
+            Expanded(
+              flex: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: AppColors.primaryGradient,
+                  ),
                 ),
-              );
-              authController.clearError();
-            });
-          }
+                child: Padding(
+                  padding: const EdgeInsets.all(48),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Image.asset(
+                        'assets/images/LOGO_TYPO_SML.png',
+                        width: 160,
+                        height: 60,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        AppStrings.tagline,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w300,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 48),
+                      const Text(
+                        'Join thousands of learners\nworldwide',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
 
-          return Row(
-            children: [
-              // Left side - Login form
-              Expanded(
-                flex: 1,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(maxWidth: 450.w),
-                    child: Padding(
-                      padding: EdgeInsets.all(40.w),
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          // Right Side - Login Form
+          Expanded(
+            flex: 1,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 450),
+                child: Padding(
+                  padding: const EdgeInsets.all(48),
+                  child: SingleChildScrollView(
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Logo for smaller screens
+                        if (screenWidth <= 1200) ...[
+                          Image.asset(
+                            'assets/images/logo.png',
+                            width: 80,
+                            height: 80,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 24),
+                          Image.asset(
+                            'assets/images/LOGO_TYPO_SML.png',
+                            width: 160,
+                            height: 60,
+                            fit: BoxFit.contain,
+                          ),
+                          const SizedBox(height: 48),
+                        ],
+
+                        // Welcome Text
+                        const Text(
+                          'Welcome Back',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Sign in to continue learning',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+
+                        const SizedBox(height: 48),
+
+                        // Error Message
+                        if (authController.errorMessage != null)
+                          NotificationBanner(
+                            message: authController.errorMessage!,
+                            type: 'error',
+                            onClose: () => authController.clearError(),
+                          ),
+
+                        // Email Field
+                        CustomTextField(
+                          label: AppStrings.email,
+                          hint: 'Enter your email',
+                          prefixIcon: Icons.email_outlined,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: Validators.validateEmail,
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Password Field
+                        CustomTextField(
+                          label: AppStrings.password,
+                          hint: 'Enter your password',
+                          prefixIcon: Icons.lock_outline,
+                          suffixIcon: _obscurePassword
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          obscureText: _obscurePassword,
+                          controller: _passwordController,
+                          validator: Validators.validatePassword,
+                          onSuffixIconTap: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Remember Me and Forgot Password
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Logo and app title
-                            Center(
-                              child: Column(
-                                children: [
-                                  Image.asset(
-                                    'assets/images/logo.png',
-                                    height: 80.h,
-                                  ),
-                                  SizedBox(height: 16.h),
-                                  Text(
-                                    AppStrings.appName,
-                                    style: TextStyle(
-                                      fontSize: 32.sp,
-                                      fontWeight: FontWeight.bold,
-                                      color: AppColors.primary,
-                                    ),
-                                  ),
-                                  SizedBox(height: 8.h),
-                                  Text(
-                                    AppStrings.loginSubtitle,
-                                    style: TextStyle(
-                                      fontSize: 18.sp,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            SizedBox(height: 60.h),
-
-                            // Email field
-                            CustomTextField(
-                              controller: _emailController,
-                              labelText: AppStrings.email,
-                              keyboardType: TextInputType.emailAddress,
-                              validator: Validators.validateEmail,
-                              prefixIcon: Icons.email_outlined,
-                            ),
-
-                            SizedBox(height: 20.h),
-
-                            // Password field
-                            CustomTextField(
-                              controller: _passwordController,
-                              labelText: AppStrings.password,
-                              obscureText: _obscurePassword,
-                              validator: Validators.validatePassword,
-                              prefixIcon: Icons.lock_outline,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_off_outlined
-                                      : Icons.visibility_outlined,
-                                ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                            ),
-
-                            SizedBox(height: 20.h),
-
-                            // Remember me and forgot password
                             Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Row(
-                                  children: [
-                                    Checkbox(
-                                      value: _rememberMe,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          _rememberMe = value ?? false;
-                                        });
-                                      },
-                                      activeColor: AppColors.primary,
-                                    ),
-                                    Text(
-                                      AppStrings.rememberMe,
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        color: AppColors.textSecondary,
-                                      ),
-                                    ),
-                                  ],
+                                Checkbox(
+                                  value: false,
+                                  onChanged: (value) {},
+                                  activeColor: AppColors.primary,
                                 ),
-                                TextButton(
-                                  onPressed: () {
-                                    // Navigate to forgot password screen
-                                    Navigator.of(context).pushNamed(AppRoutes.forgotPassword);
-                                  },
-                                  child: Text(
-                                    AppStrings.forgotPassword,
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      color: AppColors.primary,
-                                    ),
+                                Text(
+                                  AppStrings.rememberMe,
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
                                   ),
                                 ),
                               ],
                             ),
-
-                            SizedBox(height: 40.h),
-
-                            // Login button
-                            authController.isLoading
-                                ? const Center(child: CircularProgressIndicator())
-                                : PrimaryButton(
-                              text: AppStrings.login,
-                              onPressed: _login,
-                              height: 56.h,
-                              fontSize: 18.sp,
-                            ),
-
-                            SizedBox(height: 30.h),
-
-                            // Sign up link
-                            Center(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    AppStrings.dontHaveAccount,
-                                    style: TextStyle(
-                                      fontSize: 16.sp,
-                                      color: AppColors.textSecondary,
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(context).pushNamed(AppRoutes.signup);
-                                    },
-                                    child: Text(
-                                      AppStrings.signup,
-                                      style: TextStyle(
-                                        fontSize: 16.sp,
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            TextButton(
+                              onPressed: () {
+                                // Handle forgot password
+                              },
+                              child: Text(
+                                AppStrings.forgotPassword,
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
 
-              // Right side - Image/Branding
-              Expanded(
-                flex: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: AppColors.primaryGradient,
-                    ),
-                  ),
-                  child: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.school,
-                          size: 120.w,
-                          color: Colors.white,
+                        const SizedBox(height: 32),
+
+                        // Login Button
+                        PrimaryButton(
+                          text: AppStrings.login,
+                          onPressed: _handleLogin,
+                          isLoading: authController.isLoading,
+                          height: 56,
                         ),
-                        SizedBox(height: 24.h),
-                        Text(
-                          'Learn Without Limits',
-                          style: TextStyle(
-                            fontSize: 36.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          'Start, switch, or advance your career with more than 5,000 courses, Professional Certificates, and degrees from world-class universities and companies.',
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            color: Colors.white.withOpacity(0.9),
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 40.h),
+
+                        const SizedBox(height: 32),
+
+                        // Signup Link
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            _buildStatCard('5000+', 'Courses'),
-                            SizedBox(width: 40.w),
-                            _buildStatCard('1000+', 'Instructors'),
-                            SizedBox(width: 40.w),
-                            _buildStatCard('100K+', 'Students'),
+                            Text(
+                              AppStrings.dontHaveAccount,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 14,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.go('/signup');
+                              },
+                              child: Text(
+                                AppStrings.signup,
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ],
+                        ),
+
+                        const SizedBox(height: 32),
+
+                        // Demo Credentials
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppColors.info.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppColors.info.withOpacity(0.3),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Demo Credentials:',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.info,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Student Account:',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.info,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+
+                                  // Email Row
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Email: savemore@gmail.com',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy, size: 18, color: AppColors.textSecondary),
+                                        tooltip: 'Copy email',
+                                        onPressed: () {
+                                          const data = 'savemore@gmail.com';
+                                          Clipboard.setData(const ClipboardData(text: data));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Email copied to clipboard!'),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+
+                                  // Password Row
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: Text(
+                                          'Password: password123',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: AppColors.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.copy, size: 18, color: AppColors.textSecondary),
+                                        tooltip: 'Copy password',
+                                        onPressed: () {
+                                          const data = 'password123';
+                                          Clipboard.setData(const ClipboardData(text: data));
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Password copied to clipboard!'),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Admin Account:\nEmail: admin@savemore.com\nPassword: admin123',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  ),
                 ),
               ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildStatCard(String number, String label) {
-    return Column(
-      children: [
-        Text(
-          number,
-          style: TextStyle(
-            fontSize: 28.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        SizedBox(height: 8.h),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16.sp,
-            color: Colors.white.withOpacity(0.9),
-          ),
-        ),
-      ],
-    );
+  void _handleLogin() async {
+    if (_formKey.currentState!.validate()) {
+      final success = await context.read<AuthController>().login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
+
+      if (success) {
+        if (mounted) {
+          context.go('/dashboard');
+        }
+      }
+    }
   }
 }

@@ -1,134 +1,131 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user_model.dart';
-import '../services/auth_service.dart';
+import '../constants/dummy_data.dart';
+import '../services/local_storage_service.dart';
 
 class AuthController extends ChangeNotifier {
-  final AuthService _authService;
-
-  AuthController(this._authService) {
-    // Initialize auth state on controller creation
-    _initializeAuth();
-  }
-
-  // Private state variables
+  final LocalStorageService _storage;
   User? _user;
   bool _isLoading = false;
   String? _errorMessage;
 
+  AuthController(SharedPreferences prefs) : _storage = LocalStorageService(prefs) {
+    _loadUser();
+  }
+
   // Getters
   User? get user => _user;
+  bool get isLoggedIn => _user != null;
+  bool get isAdmin => _user?.role == 'admin';
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  bool get isAuthenticated => _user != null;
-  String? get authToken => _user?.token;
 
-
-  // Initialize authentication state
-  Future<void> _initializeAuth() async {
-    _setLoading(true);
-    try {
-      await _authService.initialize();
-      _user = _authService.currentUser;
-      notifyListeners();
-    } catch (e) {
-      _setError('Authentication initialization failed: ${e.toString()}');
-    } finally {
-      _setLoading(false);
-    }
+  // Load user from local storage
+  Future<void> _loadUser() async {
+    _user = _storage.getUser();
+    notifyListeners();
   }
 
   // Login with email and password
   Future<bool> login(String email, String password) async {
-    _setLoading(true);
-    clearError();
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      _user = await _authService.login(email, password);
-      notifyListeners();
-      return true;
+      // Simulate API call delay
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Dummy authentication logic for student
+      if (email == 'savemore@gmail.com' && password == 'password123') {
+        _user = DummyData.currentUser;
+        await _storage.saveUser(_user!);
+        await _storage.saveToken('dummy_token_${DateTime.now().millisecondsSinceEpoch}');
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+      // Dummy authentication logic for admin
+      else if (email == 'admin@savemore.com' && password == 'admin123') {
+        _user = DummyData.adminUser;
+        await _storage.saveUser(_user!);
+        await _storage.saveToken('admin_token_${DateTime.now().millisecondsSinceEpoch}');
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _errorMessage = 'Invalid email or password';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
     } catch (e) {
-      _setError('Login failed: ${e.toString()}');
+      _errorMessage = 'Login failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
-  // Register a new user
-  Future<bool> signup(String firstName, String lastName, String email, String password) async {
-    _setLoading(true);
-    clearError();
+  // Signup with user details
+  Future<bool> signup(String name, String email, String password) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
 
     try {
-      _user = await _authService.signup(firstName, lastName, email, password);
+      // Simulate API call delay
+      await Future.delayed(const Duration(seconds: 1));
+
+      // Create new user (dummy logic)
+      _user = User(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        name: name,
+        email: email,
+        avatar: 'https://picsum.photos/seed/${DateTime.now().millisecondsSinceEpoch}/200/200',
+        bio: 'New learner passionate about growth',
+        enrolledCourses: [],
+        completedCourses: [],
+        achievements: ['New Member'],
+        joinDate: DateTime.now(),
+        totalLearningHours: 0,
+        role: 'student',
+      );
+
+      await _storage.saveUser(_user!);
+      await _storage.saveToken('dummy_token_${DateTime.now().millisecondsSinceEpoch}');
+
+      _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {
-      _setError('Signup failed: ${e.toString()}');
-      return false;
-    } finally {
-      _setLoading(false);
-    }
-  }
-
-  // Update user profile
-  Future<bool> updateProfile(Map<String, dynamic> userData) async {
-    _setLoading(true);
-    clearError();
-
-    try {
-      _user = await _authService.updateUserProfile(userData);
+      _errorMessage = 'Signup failed: ${e.toString()}';
+      _isLoading = false;
       notifyListeners();
-      return true;
-    } catch (e) {
-      _setError('Profile update failed: ${e.toString()}');
       return false;
-    } finally {
-      _setLoading(false);
     }
   }
 
   // Logout user
   Future<void> logout() async {
-    _setLoading(true);
+    _isLoading = true;
+    notifyListeners();
 
     try {
-      await _authService.logout();
+      await _storage.removeUser();
+      await _storage.removeToken();
       _user = null;
+      _isLoading = false;
       notifyListeners();
     } catch (e) {
-      _setError('Logout failed: ${e.toString()}');
-    } finally {
-      _setLoading(false);
+      _errorMessage = 'Logout failed: ${e.toString()}';
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  // Refresh authentication token
-  Future<bool> refreshAuth() async {
-    try {
-      final success = await _authService.refreshToken();
-      if (success) {
-        _user = _authService.currentUser;
-        notifyListeners();
-      }
-      return success;
-    } catch (e) {
-      _setError('Token refresh failed: ${e.toString()}');
-      return false;
-    }
-  }
-
-  // Helper methods to update state
-  void _setLoading(bool loading) {
-    _isLoading = loading;
-    notifyListeners();
-  }
-
-  void _setError(String error) {
-    _errorMessage = error;
-    notifyListeners();
-  }
-
+  // Clear error message
   void clearError() {
     _errorMessage = null;
     notifyListeners();

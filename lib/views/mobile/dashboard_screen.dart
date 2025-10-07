@@ -1,214 +1,306 @@
 import 'package:flutter/material.dart';
-import 'package:learn2save_lms_flutter_app/views/shared/course_card.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/app_bar.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../../controllers/auth_controller.dart';
-import '../../controllers/course_controller.dart';
-import '../../widgets/bottom_nav.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../constants/colors.dart';
 import '../../constants/strings.dart';
-import '../../routes/app_routes.dart';
+import '../../constants/dummy_data.dart';
+import '../../controllers/auth_controller.dart';
+import '../../controllers/dashboard_controller.dart';
+import '../../controllers/course_controller.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/course_card.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/quiz_card.dart';
+import 'package:learn2save_lms_flutter_app/views/shared/progress_bar.dart';
+import '../../widgets/card_item.dart';
+import '../../utils/formatters.dart';
 
-class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
-
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Load data when screen initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadDashboardData();
-    });
-  }
-
-  Future<void> _loadDashboardData() async {
-    final authController = Provider.of<AuthController>(context, listen: false);
-    final courseController = Provider.of<CourseController>(context, listen: false);
-
-    // Set auth token for course controller
-    if (authController.authToken != null) {
-      courseController.setAuthToken(authController.authToken!);
-    }
-
-    // Load user's enrolled courses
-    await courseController.loadMyCourses();
-  }
+class DashboardScreen extends StatelessWidget {
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Initialize screenutil for responsive design
-    ScreenUtil.init(context, designSize: const Size(375, 812));
+    final authController = context.watch<AuthController>();
+    final dashboardController = context.watch<DashboardController>();
+    final courseController = context.watch<CourseController>();
+    final stats = dashboardController.getDashboardStats();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          AppStrings.dashboard,
-          style: TextStyle(
-            fontSize: 20.sp,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Navigate to notifications screen
-              Navigator.of(context).pushNamed(AppRoutes.notifications);
-            },
-          ),
-        ],
-      ),
-      body: Consumer2<AuthController, CourseController>(
-        builder: (context, authController, courseController, child) {
-          return RefreshIndicator(
-            onRefresh: _loadDashboardData,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(16.w),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      appBar: const DashboardAppBar(),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          // Refresh data
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Welcome Section
+              Text(
+                'Continue Learning',
+                style: const TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Stats Cards
+              Row(
                 children: [
-                  // Welcome message
-                  Text(
-                    '${AppStrings.welcome}, ${authController.user?.firstName ?? AppStrings.user}!',
-                    style: TextStyle(
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+                  Expanded(
+                    child: _buildStatCard(
+                      'Enrolled',
+                      '${stats['enrolledCourses']}',
+                      Icons.book,
+                      AppColors.primary,
                     ),
                   ),
-                  SizedBox(height: 8.h),
-                  Text(
-                    AppStrings.dashboardSubtitle,
-                    style: TextStyle(
-                      fontSize: 16.sp,
-                      color: AppColors.textSecondary,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Completed',
+                      '${stats['completedCourses']}',
+                      Icons.check_circle,
+                      AppColors.success,
                     ),
                   ),
-
-                  SizedBox(height: 24.h),
-
-                  // Stats cards
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildStatCard(
-                          title: AppStrings.coursesEnrolled,
-                          value: courseController.myCourses.length.toString(),
-                          icon: Icons.book_outlined,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                      SizedBox(width: 16.w),
-                      Expanded(
-                        child: _buildStatCard(
-                          title: AppStrings.completed,
-                          value: _calculateCompletedCourses(courseController).toString(),
-                          icon: Icons.check_circle_outline,
-                          color: AppColors.success,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 24.h),
-
-                  // Section header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        AppStrings.myCourses,
-                        style: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(AppRoutes.courses);
-                        },
-                        child: Text(
-                          AppStrings.viewAll,
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 16.h),
-
-                  // Course list
-                  courseController.isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : courseController.myCourses.isEmpty
-                      ? _buildEmptyState()
-                      : _buildCourseList(courseController),
                 ],
               ),
-            ),
-          );
-        },
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      'Hours',
+                      '${stats['learningHours']}',
+                      Icons.schedule,
+                      AppColors.warning,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      'Achievements',
+                      '${stats['achievements']}',
+                      Icons.emoji_events,
+                      AppColors.secondary,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // Recent Courses
+              Text(
+                AppStrings.recentCourses,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Course List
+              SizedBox(
+                height: 220,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: courseController.enrolledCourses.take(3).length,
+                  itemBuilder: (context, index) {
+                    final course = courseController.enrolledCourses[index];
+                    return SizedBox(
+                      width: 280,
+                      child: CourseCard(
+                        course: course,
+                        showProgress: true,
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context,
+                            '/course-detail',
+                            arguments: course.id,
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Upcoming Quizzes
+              Text(
+                AppStrings.upcomingQuizzes,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Quiz List
+              ...DummyData.quizzes.map(
+                    (quiz) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: QuizCard(
+                    quiz: quiz,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/quiz',
+                        arguments: quiz.id,
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Learning Progress
+              Text(
+                AppStrings.yourProgress,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Progress Overview
+              CardItem(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Overall Progress',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    ProgressBar(
+                      progress: 0.65,
+                      height: 12,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '65% Complete • 156 hours learned',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Recent Notifications
+              Text(
+                'Recent Activity',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Notifications List
+              ...dashboardController.notifications.take(3).map(
+                    (notification) => CardItem(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _getNotificationColor(notification.type).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _getNotificationIcon(notification.type),
+                          color: _getNotificationColor(notification.type),
+                          size: 20,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              notification.title,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              notification.message,
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      Text(
+                        Formatters.formatRelativeTime(notification.timestamp),
+                        style: TextStyle(
+                          fontSize: 10,
+                          color: AppColors.textLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      bottomNavigationBar: const BottomNav(currentIndex: 0),
     );
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+    return CardItem(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(
             icon,
             color: color,
-            size: 24.w,
+            size: 32,
           ),
-          SizedBox(height: 8.h),
+          const SizedBox(height: 8),
           Text(
             value,
-            style: TextStyle(
-              fontSize: 24.sp,
+            style: const TextStyle(
+              fontSize: 24,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
           ),
-          SizedBox(height: 4.h),
+          const SizedBox(height: 4),
           Text(
-            title,
+            label,
             style: TextStyle(
-              fontSize: 12.sp,
+              fontSize: 12,
               color: AppColors.textSecondary,
             ),
           ),
@@ -217,89 +309,33 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
-    return Container(
-      height: 200.h,
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.book_outlined,
-              size: 64.w,
-              color: AppColors.textSecondary.withOpacity(0.5),
-            ),
-            SizedBox(height: 16.h),
-            Text(
-              AppStrings.noCoursesEnrolled,
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushNamed(AppRoutes.courses);
-              },
-              child: Text(
-                AppStrings.browseCourses,
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCourseList(CourseController courseController) {
-    // Show only first 3 courses on dashboard
-    final courses = courseController.myCourses.take(3).toList();
-
-    return Column(
-      children: courses.map((course) {
-        return Padding(
-          padding: EdgeInsets.only(bottom: 16.h),
-          child: CourseCard(
-            course: course,
-            onTap: () {
-              Navigator.of(context).pushNamed(
-                AppRoutes.courseDetail,
-                arguments: course.id,
-              );
-            },
-            showProgress: true,
-            progress: _calculateCourseProgress(courseController, course.id),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  int _calculateCompletedCourses(CourseController courseController) {
-    // This is a simplified calculation
-    // In a real app, you would check the actual completion status
-    return courseController.myCourses.where((course) {
-      return _calculateCourseProgress(courseController, course.id) >= 1.0;
-    }).length;
-  }
-
-  double _calculateCourseProgress(CourseController courseController, String courseId) {
-    // Get progress data for this course
-    final progress = courseController.courseProgress;
-
-    if (progress.isEmpty || progress[courseId] == null) {
-      return 0.0;
+  Color _getNotificationColor(String type) {
+    switch (type) {
+      case 'course':
+        return AppColors.primary;
+      case 'quiz':
+        return AppColors.warning;
+      case 'achievement':
+        return AppColors.success;
+      case 'update':
+        return AppColors.info;
+      default:
+        return AppColors.textSecondary;
     }
+  }
 
-    final courseProgress = progress[courseId];
-    final completedLessons = courseProgress['completed_lessons'] ?? 0;
-    final totalLessons = courseProgress['total_lessons'] ?? 1;
-
-    return completedLessons / totalLessons;
+  IconData _getNotificationIcon(String type) {
+    switch (type) {
+      case 'course':
+        return Icons.book;
+      case 'quiz':
+        return Icons.quiz;
+      case 'achievement':
+        return Icons.emoji_events;
+      case 'update':
+        return Icons.update;
+      default:
+        return Icons.notifications;
+    }
   }
 }

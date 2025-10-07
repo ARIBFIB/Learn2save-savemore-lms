@@ -1,232 +1,167 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
-
 import '../../constants/colors.dart';
 import '../../constants/strings.dart';
 import '../../controllers/auth_controller.dart';
+import '../../controllers/dashboard_controller.dart'; // <-- Import missing
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? actions;
   final bool showBackButton;
   final VoidCallback? onBackPressed;
-  final Color? backgroundColor;
-  final Color? foregroundColor;
-  final double? elevation;
-  final bool centerTitle;
-  final Widget? leading;
 
   const CustomAppBar({
-    Key? key,
+    super.key,
     required this.title,
     this.actions,
-    this.showBackButton = true,
+    this.showBackButton = false,
     this.onBackPressed,
-    this.backgroundColor,
-    this.foregroundColor,
-    this.elevation,
-    this.centerTitle = true,
-    this.leading,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(
         title,
-        style: TextStyle(
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
+        style: const TextStyle(
+          fontWeight: FontWeight.w600,
+          color: AppColors.textPrimary,
         ),
       ),
-      backgroundColor: backgroundColor ?? AppColors.primary,
-      foregroundColor: foregroundColor ?? Colors.white,
-      elevation: elevation ?? 0,
-      centerTitle: centerTitle,
-      leading: leading ?? (showBackButton ? _buildBackButton(context) : null),
-      actions: actions ?? _buildDefaultActions(context),
-    );
-  }
-
-  Widget _buildBackButton(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-    );
-  }
-
-  List<Widget> _buildDefaultActions(BuildContext context) {
-    return [
-      Consumer<AuthController>(
-        builder: (context, authController, child) {
-          return IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              // Navigate to notifications screen
-              Navigator.of(context).pushNamed('/notifications');
-            },
-          );
-        },
-      ),
-      PopupMenuButton<String>(
-        icon: const Icon(Icons.more_vert),
-        onSelected: (value) {
-          switch (value) {
-            case 'profile':
-              Navigator.of(context).pushNamed('/profile');
-              break;
-            case 'settings':
-              Navigator.of(context).pushNamed('/settings');
-              break;
-            case 'help':
-            // Navigate to help screen
-              break;
-            case 'logout':
-              _showLogoutDialog(context);
-              break;
-          }
-        },
-        itemBuilder: (context) => [
-          const PopupMenuItem(
-            value: 'profile',
-            child: Row(
-              children: [
-                Icon(Icons.person_outline),
-                SizedBox(width: 8),
-                Text('Profile'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'settings',
-            child: Row(
-              children: [
-                Icon(Icons.settings_outlined),
-                SizedBox(width: 8),
-                Text('Settings'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'help',
-            child: Row(
-              children: [
-                Icon(Icons.help_outline),
-                SizedBox(width: 8),
-                Text('Help'),
-              ],
-            ),
-          ),
-          const PopupMenuItem(
-            value: 'logout',
-            child: Row(
-              children: [
-                Icon(Icons.logout),
-                SizedBox(width: 8),
-                Text('Logout'),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ];
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Provider.of<AuthController>(context, listen: false).logout();
-            },
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.surface,
+      elevation: 0,
+      centerTitle: true,
+      leading: showBackButton
+          ? IconButton(
+        onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+        icon: const Icon(
+          Icons.arrow_back,
+          color: AppColors.textPrimary,
+        ),
+      )
+          : null,
+      actions: actions,
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(56.h);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
 
 class DashboardAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final Widget? leading;
-  final List<Widget>? actions;
-
-  const DashboardAppBar({
-    Key? key,
-    required this.title,
-    this.leading,
-    this.actions,
-  }) : super(key: key);
+  const DashboardAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authController = context.watch<AuthController>();
+    final dashboardController = context.watch<DashboardController>();
+
     return AppBar(
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-        ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            AppStrings.welcomeBack,
+            style: TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          Text(
+            authController.user?.name ?? 'User',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
       ),
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.surface,
       elevation: 0,
-      leading: leading,
-      actions: actions,
+      actions: [
+        Stack(
+          children: [
+            IconButton(
+              onPressed: () {
+                // Navigate to notifications
+              },
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            if (dashboardController.unreadCount > 0)
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: AppColors.error,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: const BoxConstraints(
+                    minWidth: 16,
+                    minHeight: 16,
+                  ),
+                  child: Text(
+                    '${dashboardController.unreadCount}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            if (value == 'profile') {
+              // Navigate to profile
+            } else if (value == 'logout') {
+              authController.logout();
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  Icon(Icons.person),
+                  SizedBox(width: 8),
+                  Text('Profile'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout),
+                  SizedBox(width: 8),
+                  Text('Logout'),
+                ],
+              ),
+            ),
+          ],
+          child: Padding(
+            padding: const EdgeInsets.only(right: 16),
+            child: CircleAvatar(
+              backgroundImage: NetworkImage(
+                authController.user?.avatar ??
+                    'https://picsum.photos/seed/default/100/100',
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   @override
-  Size get preferredSize => Size.fromHeight(56.h);
-}
-
-class CourseDetailAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-  final bool pinned;
-  final Widget? flexibleSpace;
-  final List<Widget>? actions;
-
-  const CourseDetailAppBar({
-    Key? key,
-    required this.title,
-    this.pinned = true,
-    this.flexibleSpace,
-    this.actions,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverAppBar(
-      title: Text(
-        title,
-        style: TextStyle(
-          fontSize: 20.sp,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-      backgroundColor: AppColors.primary,
-      foregroundColor: Colors.white,
-      elevation: 0,
-      pinned: pinned,
-      flexibleSpace: flexibleSpace,
-      actions: actions,
-    );
-  }
-
-  @override
-  Size get preferredSize => Size.fromHeight(56.h);
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
 }
